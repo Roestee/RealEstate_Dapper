@@ -1,0 +1,64 @@
+﻿using Dapper;
+using RealEstate_Dapper_Api.Dtos.CategoryDtos;
+using RealEstate_Dapper_Api.Models.DapperContext;
+
+namespace RealEstate_Dapper_Api.Repositories.CategoryRepository
+{
+    public class CategoryRepository: ICategoryRepository
+    {
+        private readonly Context _context;
+
+        public CategoryRepository(Context context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<ResultCategoryDto>> GetAllCategoryAsync()
+        {
+            var query = "Select * From Category";
+            using (var connection = _context.CreateConnection())
+            {
+                var values = await connection.QueryAsync<ResultCategoryDto>(query);
+                return values.ToList();
+            }
+        }
+
+        public async void CreateCategory(CreateCategoryDto categoryDto)
+        {
+            var query = "insert into Category (CategoryName, CategoryStatus) values (@categoryName, @categoryStatus)";
+            var parameters = new DynamicParameters();
+            parameters.Add("@categoryName", categoryDto.CategoryName);
+            parameters.Add("@categoryStatus", true);
+
+            using (var connection = _context.CreateConnection())
+            {
+                await connection.ExecuteAsync(query, parameters);
+            }
+        }
+
+        public async void DeleteCategory(int id)
+        {
+            var query = "Delete from Category Where CategoryID =@categoryID";
+            var parameters = new DynamicParameters();
+            parameters.Add("@categoryID", id);
+            using (var connection = _context.CreateConnection())
+            {
+                await connection.ExecuteAsync(query, parameters);
+            }
+        }
+
+        public async void UpdateCategory(UpdateCategoryDto categoryDto)
+        {
+            var query =
+                "Update Category Set CategoryName=@categoryName, CategoryStatus=@categoryStatus where CategoryID=@categoryID";
+            var parameters = new DynamicParameters();
+            parameters.Add("@categoryName", categoryDto.CategoryName);
+            parameters.Add("@categoryStatus", categoryDto.CategoryStatus);
+            parameters.Add("@categoryID", categoryDto.CategoryID);
+            using (var connection = _context.CreateConnection())
+            {
+                await connection.ExecuteAsync(query, parameters);
+            }
+        }
+    }
+}
